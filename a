@@ -6,6 +6,16 @@ local ContextActionService= game:GetService("ContextActionService")
 local HttpService         = game:GetService("HttpService")
 local LocalPlayer         = Players.LocalPlayer
 
+local LIBRARY_VERSION = "1.2.3"
+local loaderVersion = ...
+if tostring(loaderVersion) ~= LIBRARY_VERSION then
+	local received = loaderVersion == nil and "missing" or tostring(loaderVersion)
+	pcall(function()
+		LocalPlayer:Kick("Loader version mismatch. Required " .. LIBRARY_VERSION .. ", received " .. received .. ".")
+	end)
+	error("SpareStack loader version mismatch: required " .. LIBRARY_VERSION .. ", received " .. received, 0)
+end
+
 local icons = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Kryos69/icons/refs/heads/main/icons"))()
 local function getIcon(name, library)
 	local ok, id = pcall(icons.get_icon, icons, name, library or "Material")
@@ -2792,6 +2802,7 @@ end)
 
 local Lib = {}
 
+Lib.Version = LIBRARY_VERSION
 Lib.IsMobile = IS_MOBILE
 Lib.IsMobilePreview = MOBILE_PREVIEW_ON_PC
 
@@ -2914,12 +2925,34 @@ function Lib:AddPage(navText, iconName, order, titleText, subtitleText, iconLibr
 	end
 
 	function Section:AddViewport(titleText2, buttonText, imageId, callback, tabName2, descText2)
+		local definition
+		if type(titleText2) == "table" then
+			definition = titleText2
+		else
+			definition = {
+				title = titleText2,
+				style = "banner",
+				image = imageId,
+				callback = callback,
+				tab = tabName2,
+				description = descText2,
+			}
+		end
+
+		local style = tostring(definition.style or "banner"):lower()
+		if style == "3d" or style == "model" then style = "model3d" end
+		local cardTitle = tostring(definition.title or "Preview")
+		local description = tostring(definition.description or definition.desc or "")
+		local action = definition.callback
+		local targetTab = definition.tab
+
 		Section._rowOrder += 1
 		local scroll = pageScroll
-		if tabName2 and tabClips[tabName2] then scroll = tabClips[tabName2].scroll end
+		if targetTab and tabClips[targetTab] then scroll = tabClips[targetTab].scroll end
 
 		local card = Instance.new("Frame")
-		card.Size = UDim2.new(1, 0, 0, IS_MOBILE and 124 or 112)
+		card.Name = style .. "ViewportCard"
+		card.Size = UDim2.new(1, 0, 0, definition.height or (IS_MOBILE and 132 or 124))
 		card.BackgroundColor3 = BG_ROW
 		card.BorderSizePixel = 0
 		card.LayoutOrder = Section._rowOrder
@@ -2927,15 +2960,76 @@ function Lib:AddPage(navText, iconName, order, titleText, subtitleText, iconLibr
 		card.Parent = scroll
 		corner(card, 8)
 
-		local preview = Instance.new("ImageLabel")
-		preview.Size = UDim2.new(1, 0, 1, 0)
-		preview.Position = UDim2.fromOffset(0, 0)
-		preview.BackgroundColor3 = BG_INPUT
-		preview.BorderSizePixel = 0
-		preview.Image = imageId or ""
-		preview.ScaleType = Enum.ScaleType.Crop
-		preview.Parent = card
-		corner(preview, 8)
+		local preview
+		if style == "model3d" then
+			preview = Instance.new("ViewportFrame")
+			preview.Size = UDim2.fromScale(1, 1)
+			preview.BackgroundColor3 = definition.backgroundColor or Color3.fromRGB(17, 17, 22)
+			preview.BorderSizePixel = 0
+			preview.Ambient = Color3.fromRGB(150, 150, 158)
+			preview.LightColor = Color3.fromRGB(255, 255, 255)
+			preview.LightDirection = Vector3.new(-1, -1, -1)
+			preview.Parent = card
+			corner(preview, 8)
+
+			local worldModel = Instance.new("WorldModel")
+			worldModel.Parent = preview
+			local camera = Instance.new("Camera")
+			camera.FieldOfView = definition.fieldOfView or 35
+			camera.Parent = preview
+			preview.CurrentCamera = camera
+
+			local modelSource = definition.model
+			if type(modelSource) == "function" then
+				local ok, result = pcall(modelSource)
+				if ok then modelSource = result end
+			end
+			if typeof(modelSource) == "Instance" then
+				local object = modelSource:Clone()
+				object.Parent = worldModel
+				for _, descendant in ipairs(object:GetDescendants()) do
+					if descendant:IsA("BasePart") then descendant.Anchored = true end
+				end
+
+				local focus, size
+				if object:IsA("Model") then
+					focus, size = object:GetBoundingBox()
+				elseif object:IsA("BasePart") then
+					object.Anchored = true
+					focus, size = object.CFrame, object.Size
+				end
+				if focus and size then
+					local radius = math.max(size.X, size.Y, size.Z) * 0.72
+					local distance = math.max(radius / math.tan(math.rad(camera.FieldOfView * 0.5)), 2)
+					local center = focus.Position
+					camera.CFrame = CFrame.lookAt(center + Vector3.new(distance * 0.55, distance * 0.28, distance), center)
+
+					if definition.rotate then
+						local basePivot = object:IsA("Model") and object:GetPivot() or object.CFrame
+						local angle = 0
+						local rotateConnection
+						rotateConnection = RunService.RenderStepped:Connect(function(dt)
+							if not card.Parent then rotateConnection:Disconnect(); return end
+							angle += dt * (definition.rotationSpeed or 0.45)
+							local rotated = basePivot * CFrame.Angles(0, angle, 0)
+							if object:IsA("Model") then object:PivotTo(rotated) else object.CFrame = rotated end
+						end)
+					end
+				end
+			end
+		else
+			preview = Instance.new("ImageLabel")
+			preview.Size = style == "texture" and UDim2.new(1, -24, 1, -24) or UDim2.fromScale(1, 1)
+			preview.Position = style == "texture" and UDim2.fromOffset(12, 12) or UDim2.fromOffset(0, 0)
+			preview.BackgroundColor3 = definition.backgroundColor or BG_INPUT
+			preview.BackgroundTransparency = style == "texture" and 1 or 0
+			preview.BorderSizePixel = 0
+			preview.Image = definition.image or definition.texture or ""
+			preview.ScaleType = style == "texture" and Enum.ScaleType.Fit or Enum.ScaleType.Crop
+			preview.ImageColor3 = definition.imageColor or Color3.fromRGB(255, 255, 255)
+			preview.Parent = card
+			corner(preview, 8)
+		end
 
 		local shade = Instance.new("Frame")
 		shade.Size = UDim2.new(1, 0, 0, IS_MOBILE and 62 or 58)
@@ -2957,7 +3051,7 @@ function Lib:AddPage(navText, iconName, order, titleText, subtitleText, iconLibr
 		titleLabel.Size = UDim2.new(1, -24, 0, 20)
 		titleLabel.Position = UDim2.new(0, 12, 1, IS_MOBILE and -55 or -52)
 		titleLabel.BackgroundTransparency = 1
-		titleLabel.Text = tostring(titleText2)
+		titleLabel.Text = cardTitle
 		titleLabel.TextColor3 = TEXT_MAIN
 		titleLabel.TextSize = IS_MOBILE and 13 or 15
 		titleLabel.Font = Enum.Font.GothamBold
@@ -2969,7 +3063,7 @@ function Lib:AddPage(navText, iconName, order, titleText, subtitleText, iconLibr
 		descLabel.Size = UDim2.new(1, -24, 0, 18)
 		descLabel.Position = UDim2.new(0, 12, 1, IS_MOBILE and -31 or -29)
 		descLabel.BackgroundTransparency = 1
-		descLabel.Text = tostring(descText2 or "")
+		descLabel.Text = description
 		descLabel.TextColor3 = TEXT_MUTED
 		descLabel.TextSize = IS_MOBILE and 10 or 11
 		descLabel.Font = Enum.Font.Gotham
@@ -2987,16 +3081,18 @@ function Lib:AddPage(navText, iconName, order, titleText, subtitleText, iconLibr
 		cardHit.ZIndex = 10
 		cardHit.Parent = card
 		cardHit.MouseEnter:Connect(function()
-			tween(preview, { ImageTransparency = 0.12 }, TI_FAST)
+			tween(shade, { BackgroundTransparency = 0.02 }, TI_FAST)
+			if preview:IsA("ImageLabel") then tween(preview, { ImageTransparency = 0.08 }, TI_FAST) end
 		end)
 		cardHit.MouseLeave:Connect(function()
-			tween(preview, { ImageTransparency = 0 }, TI_FAST)
+			tween(shade, { BackgroundTransparency = 0.12 }, TI_FAST)
+			if preview:IsA("ImageLabel") then tween(preview, { ImageTransparency = 0 }, TI_FAST) end
 		end)
 		cardHit.MouseButton1Click:Connect(function()
-			if callback then callback() end
+			if action then action() end
 		end)
 
-		return card
+		return card, preview
 	end
 
 	return Section
