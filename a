@@ -1666,8 +1666,8 @@ local function buildColorPicker(parent, defaultColor, configKey)
 	swatchBtn.ZIndex              = 4
 	swatchBtn.Parent              = swatch
 
-	local POPUP_W = IS_MOBILE and 210 or 216
-	local POPUP_H = 296
+	local POPUP_W = 240
+	local POPUP_H = 310
 	local popup = Instance.new("Frame")
 	popup.Size             = UDim2.new(0, POPUP_W, 0, POPUP_H)
 	popup.BackgroundColor3 = Color3.fromRGB(11, 11, 15)
@@ -1685,15 +1685,15 @@ local function buildColorPicker(parent, defaultColor, configKey)
 	popupStroke.Parent    = popup
 
 	local inner = Instance.new("Frame")
-	inner.Size             = UDim2.new(1, -20, 1, -16)
-	inner.Position         = UDim2.new(0, 10, 0, 8)
+	inner.Size             = UDim2.new(1, -28, 1, -28)
+	inner.Position         = UDim2.new(0, 14, 0, 14)
 	inner.BackgroundTransparency = 1
 	inner.ZIndex           = 51
 	inner.Parent           = popup
 
 	local headerDot = Instance.new("Frame")
-	headerDot.Size = UDim2.fromOffset(9, 9)
-	headerDot.Position = UDim2.fromOffset(2, 7)
+	headerDot.Size = UDim2.fromOffset(14, 14)
+	headerDot.Position = UDim2.fromOffset(0, 5)
 	headerDot.BackgroundColor3 = currentColor
 	headerDot.BorderSizePixel = 0
 	headerDot.ZIndex = 52
@@ -1701,34 +1701,51 @@ local function buildColorPicker(parent, defaultColor, configKey)
 	corner(headerDot, 999)
 
 	local headerTitle = Instance.new("TextLabel")
-	headerTitle.Size = UDim2.new(1, -40, 0, 22)
-	headerTitle.Position = UDim2.fromOffset(17, 0)
+	headerTitle.Size = UDim2.new(1, -52, 0, 24)
+	headerTitle.Position = UDim2.fromOffset(22, 0)
 	headerTitle.BackgroundTransparency = 1
 	headerTitle.Text = "Accent color"
 	headerTitle.TextColor3 = Color3.fromRGB(224, 224, 230)
-	headerTitle.TextSize = 10
+	headerTitle.TextSize = 13
 	headerTitle.Font = Enum.Font.GothamMedium
 	headerTitle.TextXAlignment = Enum.TextXAlignment.Left
 	headerTitle.ZIndex = 52
 	headerTitle.Parent = inner
 
-	local statsLabel = Instance.new("TextLabel")
-	statsLabel.Size = UDim2.new(1, 0, 0, 18)
-	statsLabel.Position = UDim2.fromOffset(0, 24)
-	statsLabel.BackgroundTransparency = 1
-	statsLabel.TextColor3 = Color3.fromRGB(102, 102, 115)
-	statsLabel.TextSize = 9
-	statsLabel.Font = Enum.Font.Gotham
-	statsLabel.TextXAlignment = Enum.TextXAlignment.Left
-	statsLabel.ZIndex = 52
-	statsLabel.Parent = inner
+	local addLabel = Instance.new("TextLabel")
+	addLabel.Size = UDim2.fromOffset(24, 24)
+	addLabel.Position = UDim2.new(1, -24, 0, 0)
+	addLabel.BackgroundTransparency = 1
+	addLabel.Text = "+"
+	addLabel.TextColor3 = Color3.fromRGB(108, 108, 120)
+	addLabel.TextSize = 17
+	addLabel.Font = Enum.Font.Gotham
+	addLabel.ZIndex = 52
+	addLabel.Parent = inner
 
-	local DISC_SIZE = IS_MOBILE and 120 or 128
+	local function makeReadout(xScale, alignment)
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.new(0.34, 0, 0, 18)
+		label.Position = UDim2.new(xScale, 0, 0, 32)
+		label.BackgroundTransparency = 1
+		label.TextColor3 = Color3.fromRGB(98, 98, 110)
+		label.TextSize = 11
+		label.Font = Enum.Font.Gotham
+		label.TextXAlignment = alignment
+		label.ZIndex = 52
+		label.Parent = inner
+		return label
+	end
+	local saturationReadout = makeReadout(0, Enum.TextXAlignment.Left)
+	local alphaReadout = makeReadout(0.33, Enum.TextXAlignment.Center)
+	local brightnessReadout = makeReadout(0.66, Enum.TextXAlignment.Right)
+
+	local DISC_SIZE = IS_MOBILE and 144 or 152
 	local DISC_R    = DISC_SIZE / 2
 
 	local discContainer = Instance.new("Frame")
 	discContainer.Size             = UDim2.new(0, DISC_SIZE, 0, DISC_SIZE)
-	discContainer.Position         = UDim2.new(0.5, -DISC_R, 0, 46)
+	discContainer.Position         = UDim2.new(0.5, -DISC_R, 0, 55)
 	discContainer.BackgroundTransparency = 1
 	discContainer.BorderSizePixel  = 0
 	discContainer.ClipsDescendants = false
@@ -1829,13 +1846,15 @@ local function buildColorPicker(parent, defaultColor, configKey)
 		hit.ZIndex              = 55
 		hit.Parent              = track
 
-		return { track = track, grad = grad, knob = knob, hit = hit }
+		return { holder = holder, track = track, grad = grad, knob = knob, hit = hit }
 	end
 
-	local VAL_Y = 46 + DISC_SIZE + 12
+	local VAL_Y = 55 + DISC_SIZE + 8
 	local ALP_Y = VAL_Y + 28
 	local valS  = makeSliderRow(VAL_Y, "Val")
 	local alpS  = makeSliderRow(ALP_Y, "Alpha")
+	valS.holder.Visible = false
+	alpS.holder.Visible = false
 
 	local HEX_Y = ALP_Y + 30
 	local inputBox = Instance.new("TextBox")
@@ -1854,13 +1873,56 @@ local function buildColorPicker(parent, defaultColor, configKey)
 	inputBox.ZIndex           = 52
 	inputBox.Parent           = inner
 	corner(inputBox, 6)
+	inputBox.Visible = false
+
+	local inputRow = Instance.new("Frame")
+	inputRow.Size = UDim2.new(1, 0, 0, 32)
+	inputRow.Position = UDim2.new(0, 0, 1, -32)
+	inputRow.BackgroundTransparency = 1
+	inputRow.ZIndex = 52
+	inputRow.Parent = inner
+
+	local inputLayout = Instance.new("UIListLayout")
+	inputLayout.FillDirection = Enum.FillDirection.Horizontal
+	inputLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	inputLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	inputLayout.Padding = UDim.new(0, 4)
+	inputLayout.Parent = inputRow
+
+	local function makeChannelInput(name, width)
+		local field = Instance.new("TextBox")
+		field.Name = name
+		field.Size = UDim2.fromOffset(width, 30)
+		field.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
+		field.BorderSizePixel = 0
+		field.Text = ""
+		field.TextColor3 = Color3.fromRGB(220, 220, 226)
+		field.TextSize = 11
+		field.Font = Enum.Font.Gotham
+		field.ClearTextOnFocus = false
+		field.ZIndex = 53
+		field.Parent = inputRow
+		corner(field, 6)
+		return field
+	end
+
+	local redInput = makeChannelInput("R", 46)
+	local greenInput = makeChannelInput("G", 46)
+	local blueInput = makeChannelInput("B", 46)
+	local alphaInput = makeChannelInput("A", 58)
 
 	local function refresh()
 		local col = Color3.fromHSV(h, s, v)
 		currentColor = col
 		swatch.BackgroundColor3 = col
 		headerDot.BackgroundColor3 = col
-		statsLabel.Text = string.format("S: %.2f        A: %.2f        B: %.2f", s, 1 - alpha, v)
+		saturationReadout.Text = string.format("S: %.2f", s)
+		alphaReadout.Text = string.format("A: %.2f", 1 - alpha)
+		brightnessReadout.Text = string.format("B: %.2f", v)
+		if not redInput:IsFocused() then redInput.Text = tostring(math.round(col.R * 255)) end
+		if not greenInput:IsFocused() then greenInput.Text = tostring(math.round(col.G * 255)) end
+		if not blueInput:IsFocused() then blueInput.Text = tostring(math.round(col.B * 255)) end
+		if not alphaInput:IsFocused() then alphaInput.Text = tostring(math.round((1 - alpha) * 100)) .. "%" end
 
 		local ang = (h * math.pi * 2) - (math.pi * 0.5)
 		discKnob.Position = UDim2.new(0, DISC_R + math.cos(ang)*s*DISC_R, 0, DISC_R + math.sin(ang)*s*DISC_R)
@@ -1881,6 +1943,21 @@ local function buildColorPicker(parent, defaultColor, configKey)
 		if configKey then saveConfig(configRegistry) end
 		if onChange then onChange(col) end
 	end
+
+	local function commitChannelInputs()
+		local r = math.clamp(tonumber(redInput.Text) or math.round(currentColor.R * 255), 0, 255)
+		local g = math.clamp(tonumber(greenInput.Text) or math.round(currentColor.G * 255), 0, 255)
+		local b = math.clamp(tonumber(blueInput.Text) or math.round(currentColor.B * 255), 0, 255)
+		local aText = alphaInput.Text:gsub("%%", "")
+		local a = math.clamp(tonumber(aText) or math.round((1 - alpha) * 100), 0, 100)
+		h, s, v = Color3.fromRGB(r, g, b):ToHSV()
+		alpha = 1 - (a / 100)
+		refresh()
+	end
+	redInput.FocusLost:Connect(commitChannelInputs)
+	greenInput.FocusLost:Connect(commitChannelInputs)
+	blueInput.FocusLost:Connect(commitChannelInputs)
+	alphaInput.FocusLost:Connect(commitChannelInputs)
 
 	local dragTarget = nil
 	local dragPointer = nil
