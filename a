@@ -6,7 +6,7 @@ local ContextActionService= game:GetService("ContextActionService")
 local HttpService         = game:GetService("HttpService")
 local LocalPlayer         = Players.LocalPlayer
 
-local LIBRARY_VERSION = "1.2.3"
+local LIBRARY_VERSION = "1.0.0"
 local loaderVersion = ...
 if tostring(loaderVersion) ~= LIBRARY_VERSION then
 	local received = loaderVersion == nil and "missing" or tostring(loaderVersion)
@@ -32,7 +32,8 @@ local MOBILE_PREVIEW_SIZE  = Vector2.new(844, 390)
 local IS_MOBILE = false
 do
 	local touch  = UserInputService.TouchEnabled
-	IS_MOBILE = MOBILE_PREVIEW_ON_PC or touch
+	local desktopInputs = UserInputService.KeyboardEnabled and UserInputService.MouseEnabled
+	IS_MOBILE = MOBILE_PREVIEW_ON_PC or (touch and not desktopInputs)
 end
 
 local CONFIG_KEY = "sparestack_config"
@@ -2949,21 +2950,43 @@ function Lib:AddPage(navText, iconName, order, titleText, subtitleText, iconLibr
 		Section._rowOrder += 1
 		local scroll = pageScroll
 		if targetTab and tabClips[targetTab] then scroll = tabClips[targetTab].scroll end
+		local cardHeight = definition.height or (IS_MOBILE and 210 or 220)
+
+		local cardHolder = Instance.new("Frame")
+		cardHolder.Name = "ViewportCardHolder"
+		cardHolder.Size = UDim2.new(1, 0, 0, cardHeight)
+		cardHolder.BackgroundTransparency = 1
+		cardHolder.BorderSizePixel = 0
+		cardHolder.LayoutOrder = Section._rowOrder
+		cardHolder.Parent = scroll
 
 		local card = Instance.new("Frame")
 		card.Name = style .. "ViewportCard"
-		card.Size = UDim2.new(1, 0, 0, definition.height or (IS_MOBILE and 132 or 124))
+		card.Size = UDim2.new(1, 0, 0, cardHeight)
+		card.AnchorPoint = Vector2.new(0.5, 0)
+		card.Position = UDim2.new(0.5, 0, 0, 0)
 		card.BackgroundColor3 = BG_ROW
 		card.BorderSizePixel = 0
-		card.LayoutOrder = Section._rowOrder
 		card.ClipsDescendants = true
-		card.Parent = scroll
+		card.Parent = cardHolder
 		corner(card, 8)
+
+		local cardWidth = Instance.new("UISizeConstraint")
+		cardWidth.MaxSize = Vector2.new(definition.maxWidth or 420, cardHeight)
+		cardWidth.MinSize = Vector2.new(0, cardHeight)
+		cardWidth.Parent = card
+
+		local cardStroke = Instance.new("UIStroke")
+		cardStroke.Color = Color3.fromRGB(34, 34, 42)
+		cardStroke.Thickness = 1
+		cardStroke.Transparency = 0.25
+		cardStroke.Parent = card
 
 		local preview
 		if style == "model3d" then
 			preview = Instance.new("ViewportFrame")
-			preview.Size = UDim2.fromScale(1, 1)
+			preview.Size = UDim2.new(1, -20, 0, IS_MOBILE and 124 or 134)
+			preview.Position = UDim2.fromOffset(10, 10)
 			preview.BackgroundColor3 = definition.backgroundColor or Color3.fromRGB(17, 17, 22)
 			preview.BorderSizePixel = 0
 			preview.Ambient = Color3.fromRGB(150, 150, 158)
@@ -3019,10 +3042,10 @@ function Lib:AddPage(navText, iconName, order, titleText, subtitleText, iconLibr
 			end
 		else
 			preview = Instance.new("ImageLabel")
-			preview.Size = style == "texture" and UDim2.new(1, -24, 1, -24) or UDim2.fromScale(1, 1)
-			preview.Position = style == "texture" and UDim2.fromOffset(12, 12) or UDim2.fromOffset(0, 0)
+			preview.Size = UDim2.new(1, -20, 0, IS_MOBILE and 124 or 134)
+			preview.Position = UDim2.fromOffset(10, 10)
 			preview.BackgroundColor3 = definition.backgroundColor or BG_INPUT
-			preview.BackgroundTransparency = style == "texture" and 1 or 0
+			preview.BackgroundTransparency = 0
 			preview.BorderSizePixel = 0
 			preview.Image = definition.image or definition.texture or ""
 			preview.ScaleType = style == "texture" and Enum.ScaleType.Fit or Enum.ScaleType.Crop
@@ -3046,10 +3069,11 @@ function Lib:AddPage(navText, iconName, order, titleText, subtitleText, iconLibr
 			NumberSequenceKeypoint.new(1, 0),
 		})
 		shadeGradient.Parent = shade
+		shade.Visible = false
 
 		local titleLabel = Instance.new("TextLabel")
 		titleLabel.Size = UDim2.new(1, -24, 0, 20)
-		titleLabel.Position = UDim2.new(0, 12, 1, IS_MOBILE and -55 or -52)
+		titleLabel.Position = UDim2.fromOffset(12, IS_MOBILE and 146 or 156)
 		titleLabel.BackgroundTransparency = 1
 		titleLabel.Text = cardTitle
 		titleLabel.TextColor3 = TEXT_MAIN
@@ -3060,15 +3084,14 @@ function Lib:AddPage(navText, iconName, order, titleText, subtitleText, iconLibr
 		titleLabel.Parent = card
 
 		local descLabel = Instance.new("TextLabel")
-		descLabel.Size = UDim2.new(1, -24, 0, 18)
-		descLabel.Position = UDim2.new(0, 12, 1, IS_MOBILE and -31 or -29)
+		descLabel.Size = UDim2.new(1, -24, 0, IS_MOBILE and 34 or 38)
+		descLabel.Position = UDim2.fromOffset(12, IS_MOBILE and 169 or 180)
 		descLabel.BackgroundTransparency = 1
 		descLabel.Text = description
 		descLabel.TextColor3 = TEXT_MUTED
 		descLabel.TextSize = IS_MOBILE and 10 or 11
 		descLabel.Font = Enum.Font.Gotham
-		descLabel.TextWrapped = false
-		descLabel.TextTruncate = Enum.TextTruncate.AtEnd
+		descLabel.TextWrapped = true
 		descLabel.TextXAlignment = Enum.TextXAlignment.Left
 		descLabel.TextYAlignment = Enum.TextYAlignment.Top
 		descLabel.Parent = card
@@ -3081,11 +3104,13 @@ function Lib:AddPage(navText, iconName, order, titleText, subtitleText, iconLibr
 		cardHit.ZIndex = 10
 		cardHit.Parent = card
 		cardHit.MouseEnter:Connect(function()
-			tween(shade, { BackgroundTransparency = 0.02 }, TI_FAST)
+			tween(card, { BackgroundColor3 = Color3.fromRGB(18, 18, 25) }, TI_FAST)
+			tween(cardStroke, { Transparency = 0 }, TI_FAST)
 			if preview:IsA("ImageLabel") then tween(preview, { ImageTransparency = 0.08 }, TI_FAST) end
 		end)
 		cardHit.MouseLeave:Connect(function()
-			tween(shade, { BackgroundTransparency = 0.12 }, TI_FAST)
+			tween(card, { BackgroundColor3 = BG_ROW }, TI_FAST)
+			tween(cardStroke, { Transparency = 0.25 }, TI_FAST)
 			if preview:IsA("ImageLabel") then tween(preview, { ImageTransparency = 0 }, TI_FAST) end
 		end)
 		cardHit.MouseButton1Click:Connect(function()
