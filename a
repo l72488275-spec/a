@@ -1666,8 +1666,8 @@ local function buildColorPicker(parent, defaultColor, configKey)
 	swatchBtn.ZIndex              = 4
 	swatchBtn.Parent              = swatch
 
-	local POPUP_W = 240
-	local POPUP_H = 310
+	local POPUP_W = 224
+	local POPUP_H = 294
 	local popup = Instance.new("Frame")
 	popup.Size             = UDim2.new(0, POPUP_W, 0, POPUP_H)
 	popup.BackgroundColor3 = Color3.fromRGB(11, 11, 15)
@@ -1692,8 +1692,8 @@ local function buildColorPicker(parent, defaultColor, configKey)
 	inner.Parent           = popup
 
 	local headerDot = Instance.new("Frame")
-	headerDot.Size = UDim2.fromOffset(14, 14)
-	headerDot.Position = UDim2.fromOffset(0, 5)
+	headerDot.Size = UDim2.fromOffset(10, 10)
+	headerDot.Position = UDim2.fromOffset(1, 6)
 	headerDot.BackgroundColor3 = currentColor
 	headerDot.BorderSizePixel = 0
 	headerDot.ZIndex = 52
@@ -1701,25 +1701,26 @@ local function buildColorPicker(parent, defaultColor, configKey)
 	corner(headerDot, 999)
 
 	local headerTitle = Instance.new("TextLabel")
-	headerTitle.Size = UDim2.new(1, -52, 0, 24)
-	headerTitle.Position = UDim2.fromOffset(22, 0)
+	headerTitle.Size = UDim2.new(1, -78, 0, 22)
+	headerTitle.Position = UDim2.fromOffset(18, 0)
 	headerTitle.BackgroundTransparency = 1
 	headerTitle.Text = "Accent color"
 	headerTitle.TextColor3 = Color3.fromRGB(224, 224, 230)
-	headerTitle.TextSize = 13
+	headerTitle.TextSize = 12
 	headerTitle.Font = Enum.Font.GothamMedium
 	headerTitle.TextXAlignment = Enum.TextXAlignment.Left
 	headerTitle.ZIndex = 52
 	headerTitle.Parent = inner
 
 	local addLabel = Instance.new("TextLabel")
-	addLabel.Size = UDim2.fromOffset(24, 24)
-	addLabel.Position = UDim2.new(1, -24, 0, 0)
+	addLabel.Size = UDim2.fromOffset(68, 22)
+	addLabel.Position = UDim2.new(1, -68, 0, 0)
 	addLabel.BackgroundTransparency = 1
-	addLabel.Text = "+"
-	addLabel.TextColor3 = Color3.fromRGB(108, 108, 120)
-	addLabel.TextSize = 17
-	addLabel.Font = Enum.Font.Gotham
+	addLabel.Text = "#3369FF"
+	addLabel.TextColor3 = Color3.fromRGB(128, 128, 140)
+	addLabel.TextSize = 9
+	addLabel.Font = Enum.Font.GothamMedium
+	addLabel.TextXAlignment = Enum.TextXAlignment.Right
 	addLabel.ZIndex = 52
 	addLabel.Parent = inner
 
@@ -1739,13 +1740,16 @@ local function buildColorPicker(parent, defaultColor, configKey)
 	local saturationReadout = makeReadout(0, Enum.TextXAlignment.Left)
 	local alphaReadout = makeReadout(0.33, Enum.TextXAlignment.Center)
 	local brightnessReadout = makeReadout(0.66, Enum.TextXAlignment.Right)
+	saturationReadout.Visible = false
+	alphaReadout.Visible = false
+	brightnessReadout.Visible = false
 
-	local DISC_SIZE = IS_MOBILE and 144 or 152
+	local DISC_SIZE = 128
 	local DISC_R    = DISC_SIZE / 2
 
 	local discContainer = Instance.new("Frame")
 	discContainer.Size             = UDim2.new(0, DISC_SIZE, 0, DISC_SIZE)
-	discContainer.Position         = UDim2.new(0.5, -DISC_R, 0, 55)
+	discContainer.Position         = UDim2.new(0.5, -DISC_R, 0, 34)
 	discContainer.BackgroundTransparency = 1
 	discContainer.BorderSizePixel  = 0
 	discContainer.ClipsDescendants = false
@@ -1770,12 +1774,12 @@ local function buildColorPicker(parent, defaultColor, configKey)
 
 	local discKnob = Instance.new("Frame")
 	discKnob.AnchorPoint    = Vector2.new(0.5, 0.5)
-	discKnob.Size           = UDim2.new(0, 14, 0, 14)
+	discKnob.Size           = UDim2.new(0, 10, 0, 10)
 	discKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	discKnob.BorderSizePixel = 0
 	discKnob.ZIndex         = 56
 	discKnob.Parent         = discContainer
-	corner(discKnob, 7)
+	corner(discKnob, 999)
 
 	local discKnobStroke = Instance.new("UIStroke")
 	discKnobStroke.Color       = Color3.fromRGB(0, 0, 0)
@@ -1810,27 +1814,27 @@ local function buildColorPicker(parent, defaultColor, configKey)
 		lbl.Parent           = holder
 
 		local track = Instance.new("Frame")
-		track.Size             = UDim2.new(1, -42, 0, 8)
-		track.Position         = UDim2.new(0, 42, 0.5, -4)
+		track.Size             = UDim2.new(1, -30, 0, 6)
+		track.Position         = UDim2.new(0, 30, 0.5, -3)
 		track.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 		track.BackgroundTransparency = 0.88
 		track.BorderSizePixel  = 0
 		track.ZIndex           = 52
 		track.Parent           = holder
-		corner(track, 4)
+		corner(track, 999)
 
 		local grad  = Instance.new("UIGradient")
 		grad.Parent = track
 
 		local knob = Instance.new("Frame")
 		knob.AnchorPoint    = Vector2.new(0.5, 0.5)
-		knob.Size           = UDim2.new(0, 14, 0, 14)
+		knob.Size           = UDim2.new(0, 10, 0, 10)
 		knob.Position       = UDim2.new(0, 0, 0.5, 0)
 		knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 		knob.BorderSizePixel = 0
 		knob.ZIndex         = 54
 		knob.Parent         = track
-		corner(knob, 7)
+		corner(knob, 999)
 
 		local ks = Instance.new("UIStroke")
 		ks.Color       = Color3.fromRGB(0, 0, 0)
@@ -1849,12 +1853,10 @@ local function buildColorPicker(parent, defaultColor, configKey)
 		return { holder = holder, track = track, grad = grad, knob = knob, hit = hit }
 	end
 
-	local VAL_Y = 55 + DISC_SIZE + 8
+	local VAL_Y = 174
 	local ALP_Y = VAL_Y + 28
-	local valS  = makeSliderRow(VAL_Y, "Val")
-	local alpS  = makeSliderRow(ALP_Y, "Alpha")
-	valS.holder.Visible = false
-	alpS.holder.Visible = false
+	local valS  = makeSliderRow(VAL_Y, "B")
+	local alpS  = makeSliderRow(ALP_Y, "A")
 
 	local HEX_Y = ALP_Y + 30
 	local inputBox = Instance.new("TextBox")
@@ -1877,7 +1879,7 @@ local function buildColorPicker(parent, defaultColor, configKey)
 
 	local inputRow = Instance.new("Frame")
 	inputRow.Size = UDim2.new(1, 0, 0, 32)
-	inputRow.Position = UDim2.new(0, 0, 1, -32)
+	inputRow.Position = UDim2.new(0, 0, 0, 230)
 	inputRow.BackgroundTransparency = 1
 	inputRow.ZIndex = 52
 	inputRow.Parent = inner
@@ -1906,16 +1908,17 @@ local function buildColorPicker(parent, defaultColor, configKey)
 		return field
 	end
 
-	local redInput = makeChannelInput("R", 46)
-	local greenInput = makeChannelInput("G", 46)
-	local blueInput = makeChannelInput("B", 46)
-	local alphaInput = makeChannelInput("A", 58)
+	local redInput = makeChannelInput("R", 42)
+	local greenInput = makeChannelInput("G", 42)
+	local blueInput = makeChannelInput("B", 42)
+	local alphaInput = makeChannelInput("A", 54)
 
 	local function refresh()
 		local col = Color3.fromHSV(h, s, v)
 		currentColor = col
 		swatch.BackgroundColor3 = col
 		headerDot.BackgroundColor3 = col
+		addLabel.Text = string.format("#%02X%02X%02X", math.round(col.R * 255), math.round(col.G * 255), math.round(col.B * 255))
 		saturationReadout.Text = string.format("S: %.2f", s)
 		alphaReadout.Text = string.format("A: %.2f", 1 - alpha)
 		brightnessReadout.Text = string.format("B: %.2f", v)
@@ -2446,7 +2449,7 @@ local function buildToggleAccessories(row, widgetDef, configKey)
 	local optionsButton = Instance.new("TextButton")
 	optionsButton.Name = "QuickOptions"
 	optionsButton.Size = UDim2.fromOffset(24, 24)
-	optionsButton.Position = IS_MOBILE and UDim2.new(1, -94, 1, -36) or UDim2.new(1, -94, 0.5, -12)
+	optionsButton.Position = IS_MOBILE and UDim2.new(1, -90, 1, -36) or UDim2.new(1, -90, 0.5, -12)
 	optionsButton.BackgroundTransparency = 1
 	optionsButton.BorderSizePixel = 0
 	optionsButton.Text = ""
@@ -2477,8 +2480,8 @@ local function buildToggleAccessories(row, widgetDef, configKey)
 
 	if swatch then
 		swatch.Name = "QuickColor"
-		swatch.Size = UDim2.fromOffset(16, 16)
-		swatch.Position = IS_MOBILE and UDim2.new(1, -66, 1, -32) or UDim2.new(1, -66, 0.5, -8)
+		swatch.Size = UDim2.fromOffset(14, 14)
+		swatch.Position = IS_MOBILE and UDim2.new(1, -64, 1, -31) or UDim2.new(1, -64, 0.5, -7)
 		local swatchCorner = swatch:FindFirstChildOfClass("UICorner")
 		if swatchCorner then swatchCorner.CornerRadius = UDim.new(1, 0) end
 		local swatchStroke = swatch:FindFirstChildOfClass("UIStroke")
