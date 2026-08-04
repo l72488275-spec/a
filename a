@@ -1545,8 +1545,8 @@ local function buildKeybind(parent, default, configKey, onChanged)
 			if listening then return end
 			listening = true
 			btn.Text = "Press a key..."
-			tween(btn, { BackgroundColor3 = Color3.fromRGB(25,22,40) }, TI_FAST)
-			tween(btn, { TextColor3 = ACCENT })
+			tween(btn, { BackgroundColor3 = Color3.fromRGB(28, 28, 34) }, TI_FAST)
+			tween(btn, { TextColor3 = TEXT_MAIN })
 		end)
 
 		onInputBegan(function(input)
@@ -2164,90 +2164,91 @@ local function buildToggleQuickOptions(row, widgetDef, configKey)
 
 	local optionsButton = Instance.new("TextButton")
 	optionsButton.Name = "QuickOptions"
-	optionsButton.Size = UDim2.fromOffset(IS_MOBILE and 32 or 28, IS_MOBILE and 32 or 28)
-	optionsButton.Position = IS_MOBILE and UDim2.new(1, -82, 1, -40) or UDim2.new(1, -82, 0.5, -14)
-	optionsButton.BackgroundColor3 = BG_INPUT
-	optionsButton.BackgroundTransparency = 0.35
+	optionsButton.Size = UDim2.fromOffset(24, 24)
+	optionsButton.Position = IS_MOBILE and UDim2.new(1, -76, 1, -36) or UDim2.new(1, -76, 0.5, -12)
+	optionsButton.BackgroundTransparency = 1
 	optionsButton.BorderSizePixel = 0
 	optionsButton.Text = ""
 	optionsButton.AutoButtonColor = false
 	optionsButton.ZIndex = 8
 	optionsButton.Parent = row
-	corner(optionsButton, 7)
-
 	local dots = Instance.new("ImageLabel")
-	dots.Size = UDim2.fromOffset(15, 15)
-	dots.Position = UDim2.new(0.5, -7.5, 0.5, -7.5)
+	dots.Size = UDim2.fromOffset(16, 16)
+	dots.Position = UDim2.new(0.5, -8, 0.5, -8)
 	dots.BackgroundTransparency = 1
 	dots.Image = getIcon("ellipsis", "Lucide")
-	dots.ImageColor3 = Color3.fromRGB(145, 145, 156)
+	dots.ImageColor3 = Color3.fromRGB(255, 255, 255)
 	dots.ZIndex = 9
 	dots.Parent = optionsButton
 
 	local panel = Instance.new("Frame")
 	panel.Name = "ToggleQuickOptionsPanel"
-	panel.Size = UDim2.fromOffset(IS_MOBILE and 250 or 286, 126)
-	panel.BackgroundColor3 = Color3.fromRGB(14, 14, 19)
+	panel.Size = UDim2.fromOffset(IS_MOBILE and 226 or 238, 110)
+	panel.BackgroundColor3 = Color3.fromRGB(13, 13, 17)
 	panel.BorderSizePixel = 0
 	panel.Visible = false
 	panel.ZIndex = 40
 	panel.Parent = MainFrame
-	corner(panel, 10)
+	corner(panel, 8)
 
 	local panelStroke = Instance.new("UIStroke")
-	panelStroke.Color = Color3.fromRGB(50, 50, 61)
+	panelStroke.Color = Color3.fromRGB(62, 62, 70)
 	panelStroke.Thickness = 1
-	panelStroke.Transparency = 0.25
+	panelStroke.Transparency = 0.45
 	panelStroke.Parent = panel
 
 	local heading = Instance.new("TextLabel")
-	heading.Size = UDim2.new(1, -24, 0, 28)
-	heading.Position = UDim2.fromOffset(12, 4)
+	heading.Size = UDim2.new(1, -20, 0, 24)
+	heading.Position = UDim2.fromOffset(10, 3)
 	heading.BackgroundTransparency = 1
-	heading.Text = tostring(widgetDef.optionsTitle or "Quick options")
+	heading.Text = tostring(widgetDef.optionsTitle or "Options")
 	heading.TextColor3 = TEXT_MAIN
-	heading.TextSize = 11
+	heading.TextSize = 10
 	heading.Font = Enum.Font.GothamBold
 	heading.TextXAlignment = Enum.TextXAlignment.Left
 	heading.ZIndex = 42
 	heading.Parent = panel
 
 	local colorRow = Instance.new("Frame")
-	colorRow.Size = UDim2.new(1, -16, 0, 40)
-	colorRow.Position = UDim2.fromOffset(8, 34)
-	colorRow.BackgroundColor3 = BG_ROW
+	colorRow.Size = UDim2.new(1, -20, 0, 36)
+	colorRow.Position = UDim2.fromOffset(10, 29)
+	colorRow.BackgroundTransparency = 1
 	colorRow.BorderSizePixel = 0
 	colorRow.ZIndex = 41
 	colorRow.Parent = panel
-	corner(colorRow, 6)
-
 	local colorLabel = Instance.new("TextLabel")
-	colorLabel.Size = UDim2.new(1, -54, 1, 0)
-	colorLabel.Position = UDim2.fromOffset(10, 0)
+	colorLabel.Size = UDim2.new(1, -42, 1, 0)
+	colorLabel.Position = UDim2.fromOffset(2, 0)
 	colorLabel.BackgroundTransparency = 1
 	colorLabel.Text = tostring(widgetDef.colorLabel or "Color")
-	colorLabel.TextColor3 = Color3.fromRGB(205, 205, 214)
+	colorLabel.TextColor3 = Color3.fromRGB(178, 178, 188)
 	colorLabel.TextSize = 11
 	colorLabel.Font = Enum.Font.Gotham
 	colorLabel.TextXAlignment = Enum.TextXAlignment.Left
 	colorLabel.ZIndex = 42
 	colorLabel.Parent = colorRow
 
+	local separator = Instance.new("Frame")
+	separator.Size = UDim2.new(1, -20, 0, 1)
+	separator.Position = UDim2.fromOffset(10, 67)
+	separator.BackgroundColor3 = Color3.fromRGB(38, 38, 44)
+	separator.BorderSizePixel = 0
+	separator.ZIndex = 41
+	separator.Parent = panel
+
 	local keyRow = Instance.new("Frame")
-	keyRow.Size = UDim2.new(1, -16, 0, 40)
-	keyRow.Position = UDim2.fromOffset(8, 78)
-	keyRow.BackgroundColor3 = BG_ROW
+	keyRow.Size = UDim2.new(1, -20, 0, 36)
+	keyRow.Position = UDim2.fromOffset(10, 70)
+	keyRow.BackgroundTransparency = 1
 	keyRow.BorderSizePixel = 0
 	keyRow.ZIndex = 41
 	keyRow.Parent = panel
-	corner(keyRow, 6)
-
 	local keyLabel = Instance.new("TextLabel")
-	keyLabel.Size = UDim2.new(1, IS_MOBILE and -128 or -142, 1, 0)
-	keyLabel.Position = UDim2.fromOffset(10, 0)
+	keyLabel.Size = UDim2.new(1, -96, 1, 0)
+	keyLabel.Position = UDim2.fromOffset(2, 0)
 	keyLabel.BackgroundTransparency = 1
 	keyLabel.Text = tostring(widgetDef.keybindLabel or "Keybind")
-	keyLabel.TextColor3 = Color3.fromRGB(205, 205, 214)
+	keyLabel.TextColor3 = Color3.fromRGB(178, 178, 188)
 	keyLabel.TextSize = 11
 	keyLabel.Font = Enum.Font.Gotham
 	keyLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -2259,6 +2260,24 @@ local function buildToggleQuickOptions(row, widgetDef, configKey)
 	local colorGetter, setColorChanged = buildColorPicker(colorRow, widgetDef.colorDefault or ACCENT, colorKey)
 	if widgetDef.onColorChange then setColorChanged(widgetDef.onColorChange) end
 	local keybindGetter = buildKeybind(keyRow, widgetDef.keybindDefault or Enum.KeyCode.RightShift, keybindKey, widgetDef.onKeybindChange)
+	local compactSwatch = colorRow:FindFirstChildOfClass("Frame")
+	if compactSwatch then
+		compactSwatch.Size = UDim2.fromOffset(24, 24)
+		compactSwatch.Position = UDim2.new(1, -26, 0.5, -12)
+	end
+	local compactKeybind = keyRow:FindFirstChildOfClass("TextButton")
+	if compactKeybind then
+		compactKeybind.Size = UDim2.fromOffset(IS_MOBILE and 86 or 90, 26)
+		compactKeybind.Position = UDim2.new(1, IS_MOBILE and -86 or -90, 0.5, -13)
+		compactKeybind.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+		compactKeybind.TextSize = 10
+		corner(compactKeybind, 6)
+		local keyStroke = Instance.new("UIStroke")
+		keyStroke.Color = Color3.fromRGB(58, 58, 67)
+		keyStroke.Transparency = 0.45
+		keyStroke.Thickness = 1
+		keyStroke.Parent = compactKeybind
+	end
 	configRegistry[colorKey] = { getter = colorGetter }
 	configRegistry[keybindKey] = { getter = keybindGetter }
 
@@ -2287,12 +2306,10 @@ local function buildToggleQuickOptions(row, widgetDef, configKey)
 	end
 
 	optionsButton.MouseEnter:Connect(function()
-		tween(optionsButton, { BackgroundTransparency = 0.08 }, TI_FAST)
-		tween(dots, { ImageColor3 = TEXT_MAIN }, TI_FAST)
+		tween(dots, { ImageColor3 = Color3.fromRGB(190, 190, 200) }, TI_FAST)
 	end)
 	optionsButton.MouseLeave:Connect(function()
-		tween(optionsButton, { BackgroundTransparency = 0.35 }, TI_FAST)
-		tween(dots, { ImageColor3 = Color3.fromRGB(145, 145, 156) }, TI_FAST)
+		tween(dots, { ImageColor3 = Color3.fromRGB(255, 255, 255) }, TI_FAST)
 	end)
 	optionsButton.MouseButton1Click:Connect(function()
 		open = not open
