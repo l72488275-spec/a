@@ -2925,6 +2925,151 @@ function Lib:AddPage(navText, iconName, order, titleText, subtitleText, iconLibr
 		return buildRow(scroll, titleText2, descText2, Section._rowOrder, widgetDef2, pageEntry, navEntry, tabName2)
 	end
 
+	function Section:AddCollapsibleSection(titleText2, descText2, options)
+		options = type(options) == "table" and options or { tab = options }
+		local targetTab = options.tab
+		local open = options.defaultOpen ~= false
+		local HEADER_H = IS_MOBILE and 58 or 54
+		local groupOrder = 0
+
+		Section._rowOrder += 1
+		local scroll = pageScroll
+		if targetTab and tabClips[targetTab] then scroll = tabClips[targetTab].scroll end
+
+		local holder = Instance.new("Frame")
+		holder.Name = "CollapsibleSection"
+		holder.Size = UDim2.new(1, 0, 0, HEADER_H)
+		holder.BackgroundTransparency = 1
+		holder.BorderSizePixel = 0
+		holder.ClipsDescendants = true
+		holder.LayoutOrder = Section._rowOrder
+		holder.Parent = scroll
+
+		local header = Instance.new("Frame")
+		header.Size = UDim2.new(1, 0, 0, HEADER_H)
+		header.BackgroundColor3 = BG_ROW
+		header.BorderSizePixel = 0
+		header.Parent = holder
+		corner(header, 7)
+
+		local headerStroke = Instance.new("UIStroke")
+		headerStroke.Color = DIVIDER
+		headerStroke.Thickness = 1
+		headerStroke.Transparency = 0.35
+		headerStroke.Parent = header
+
+		local titleLabel = Instance.new("TextLabel")
+		titleLabel.Size = UDim2.new(1, -54, 0, 18)
+		titleLabel.Position = UDim2.fromOffset(14, IS_MOBILE and 10 or 9)
+		titleLabel.BackgroundTransparency = 1
+		titleLabel.Text = tostring(titleText2)
+		titleLabel.TextColor3 = TEXT_MAIN
+		titleLabel.TextSize = IS_MOBILE and 13 or 14
+		titleLabel.Font = Enum.Font.GothamBold
+		titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+		titleLabel.TextTruncate = Enum.TextTruncate.AtEnd
+		titleLabel.Parent = header
+
+		local descriptionLabel = Instance.new("TextLabel")
+		descriptionLabel.Size = UDim2.new(1, -54, 0, 15)
+		descriptionLabel.Position = UDim2.fromOffset(14, IS_MOBILE and 32 or 30)
+		descriptionLabel.BackgroundTransparency = 1
+		descriptionLabel.Text = tostring(descText2 or "")
+		descriptionLabel.TextColor3 = TEXT_MUTED
+		descriptionLabel.TextSize = IS_MOBILE and 10 or 11
+		descriptionLabel.Font = Enum.Font.Gotham
+		descriptionLabel.TextXAlignment = Enum.TextXAlignment.Left
+		descriptionLabel.TextTruncate = Enum.TextTruncate.AtEnd
+		descriptionLabel.Parent = header
+
+		local chevron = Instance.new("ImageLabel")
+		chevron.Size = UDim2.fromOffset(17, 17)
+		chevron.Position = UDim2.new(1, -32, 0.5, -8.5)
+		chevron.BackgroundTransparency = 1
+		chevron.Image = getIcon("chevron-down", "Lucide")
+		chevron.ImageColor3 = Color3.fromRGB(150, 150, 162)
+		chevron.Rotation = open and 180 or 0
+		chevron.ZIndex = 3
+		chevron.Parent = header
+
+		local headerButton = Instance.new("TextButton")
+		headerButton.Size = UDim2.fromScale(1, 1)
+		headerButton.BackgroundTransparency = 1
+		headerButton.Text = ""
+		headerButton.AutoButtonColor = false
+		headerButton.ZIndex = 4
+		headerButton.Parent = header
+
+		local content = Instance.new("Frame")
+		content.Size = UDim2.new(1, 0, 0, 0)
+		content.Position = UDim2.fromOffset(0, HEADER_H)
+		content.BackgroundTransparency = 1
+		content.BorderSizePixel = 0
+		content.ClipsDescendants = false
+		content.Parent = holder
+
+		local contentPadding = Instance.new("UIPadding")
+		contentPadding.PaddingTop = UDim.new(0, 8)
+		contentPadding.Parent = content
+
+		local contentLayout = Instance.new("UIListLayout")
+		contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		contentLayout.Padding = UDim.new(0, 8)
+		contentLayout.Parent = content
+
+		local function contentHeight()
+			return contentLayout.AbsoluteContentSize.Y + 8
+		end
+
+		local function renderState(animated)
+			local bodyHeight = open and contentHeight() or 0
+			local contentSize = UDim2.new(1, 0, 0, bodyHeight)
+			local holderSize = UDim2.new(1, 0, 0, HEADER_H + bodyHeight)
+			if animated then
+				tween(content, { Size = contentSize }, TI_NORM)
+				tween(holder, { Size = holderSize }, TI_NORM)
+				tween(chevron, { Rotation = open and 180 or 0 }, TI_NORM)
+			else
+				content.Size = contentSize
+				holder.Size = holderSize
+				chevron.Rotation = open and 180 or 0
+			end
+		end
+
+		local function setOpen(value, animated)
+			open = not not value
+			renderState(animated ~= false)
+		end
+
+		headerButton.MouseEnter:Connect(function()
+			tween(header, { BackgroundColor3 = Color3.fromRGB(18, 18, 25) }, TI_FAST)
+			tween(chevron, { ImageColor3 = TEXT_MAIN }, TI_FAST)
+		end)
+		headerButton.MouseLeave:Connect(function()
+			tween(header, { BackgroundColor3 = BG_ROW }, TI_FAST)
+			tween(chevron, { ImageColor3 = Color3.fromRGB(150, 150, 162) }, TI_FAST)
+		end)
+		headerButton.MouseButton1Click:Connect(function() setOpen(not open, true) end)
+
+		contentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			if open then renderState(false) end
+		end)
+
+		local Group = { Frame = holder }
+		function Group:AddRow(rowTitle, rowDescription, rowDefinition)
+			groupOrder += 1
+			local row, getter = buildRow(content, rowTitle, rowDescription, groupOrder, rowDefinition, pageEntry, navEntry, targetTab)
+			task.defer(function() renderState(false) end)
+			return row, getter
+		end
+		function Group:SetOpen(value) setOpen(value, true) end
+		function Group:Toggle() setOpen(not open, true) end
+		function Group:IsOpen() return open end
+
+		task.defer(function() renderState(false) end)
+		return Group
+	end
+
 	function Section:AddViewport(titleText2, buttonText, imageId, callback, tabName2, descText2)
 		local definition
 		if type(titleText2) == "table" then
@@ -2963,8 +3108,8 @@ function Lib:AddPage(navText, iconName, order, titleText, subtitleText, iconLibr
 		local card = Instance.new("Frame")
 		card.Name = style .. "ViewportCard"
 		card.Size = UDim2.new(1, 0, 0, cardHeight)
-		card.AnchorPoint = Vector2.new(0.5, 0)
-		card.Position = UDim2.new(0.5, 0, 0, 0)
+		card.AnchorPoint = Vector2.new(0, 0)
+		card.Position = UDim2.fromOffset(0, 0)
 		card.BackgroundColor3 = BG_ROW
 		card.BorderSizePixel = 0
 		card.ClipsDescendants = true
