@@ -865,14 +865,20 @@ local function makeExternalIcon(parent, entry, size, position)
 	button.Name = entry.name .. "NavIcon"
 	button.Size = UDim2.fromOffset(size, size)
 	button.Position = position or UDim2.new()
-	button.BackgroundColor3 = BG_INPUT
-	button.BackgroundTransparency = entry == activeNavBtn and 0.15 or 1
+	button.BackgroundColor3 = BG_SIDEBAR
+	button.BackgroundTransparency = entry == activeNavBtn and 0.12 or 0.34
 	button.BorderSizePixel = 0
 	button.AutoButtonColor = false
 	button.Text = ""
 	button.ZIndex = 302
 	button.Parent = parent
 	corner(button, 9)
+
+	local buttonStroke = Instance.new("UIStroke")
+	buttonStroke.Color = Color3.fromRGB(55, 55, 66)
+	buttonStroke.Thickness = 1
+	buttonStroke.Transparency = entry == activeNavBtn and 0.3 or 0.55
+	buttonStroke.Parent = button
 
 	local glyph = Instance.new("ImageLabel")
 	local glyphSize = IS_MOBILE and 18 or 16
@@ -910,12 +916,12 @@ local function makeExternalIcon(parent, entry, size, position)
 	corner(tooltip, 6)
 
 	button.MouseEnter:Connect(function()
-		tween(button, { BackgroundTransparency = 0.15 }, TI_FAST)
+		tween(button, { BackgroundTransparency = 0.08 }, TI_FAST)
 		tween(glyph, { ImageColor3 = TEXT_MAIN }, TI_FAST)
 		tooltip.Visible = true
 	end)
 	button.MouseLeave:Connect(function()
-		tween(button, { BackgroundTransparency = entry == activeNavBtn and 0.15 or 1 }, TI_FAST)
+		tween(button, { BackgroundTransparency = entry == activeNavBtn and 0.12 or 0.34 }, TI_FAST)
 		tween(glyph, { ImageColor3 = entry == activeNavBtn and TEXT_MAIN or Color3.fromRGB(135, 135, 148) }, TI_FAST)
 		tooltip.Visible = false
 	end)
@@ -2153,6 +2159,158 @@ local function buildMultiSelect(parent, options, defaults, configKey)
 	end, function(fn) onChange = fn end
 end
 
+local function buildToggleQuickOptions(row, widgetDef, configKey)
+	if widgetDef.quickOptions == false then return end
+
+	local optionsButton = Instance.new("TextButton")
+	optionsButton.Name = "QuickOptions"
+	optionsButton.Size = UDim2.fromOffset(IS_MOBILE and 32 or 28, IS_MOBILE and 32 or 28)
+	optionsButton.Position = IS_MOBILE and UDim2.new(1, -82, 1, -40) or UDim2.new(1, -82, 0.5, -14)
+	optionsButton.BackgroundColor3 = BG_INPUT
+	optionsButton.BackgroundTransparency = 0.35
+	optionsButton.BorderSizePixel = 0
+	optionsButton.Text = ""
+	optionsButton.AutoButtonColor = false
+	optionsButton.ZIndex = 8
+	optionsButton.Parent = row
+	corner(optionsButton, 7)
+
+	local dots = Instance.new("ImageLabel")
+	dots.Size = UDim2.fromOffset(15, 15)
+	dots.Position = UDim2.new(0.5, -7.5, 0.5, -7.5)
+	dots.BackgroundTransparency = 1
+	dots.Image = getIcon("ellipsis", "Lucide")
+	dots.ImageColor3 = Color3.fromRGB(145, 145, 156)
+	dots.ZIndex = 9
+	dots.Parent = optionsButton
+
+	local panel = Instance.new("Frame")
+	panel.Name = "ToggleQuickOptionsPanel"
+	panel.Size = UDim2.fromOffset(IS_MOBILE and 250 or 286, 126)
+	panel.BackgroundColor3 = Color3.fromRGB(14, 14, 19)
+	panel.BorderSizePixel = 0
+	panel.Visible = false
+	panel.ZIndex = 40
+	panel.Parent = MainFrame
+	corner(panel, 10)
+
+	local panelStroke = Instance.new("UIStroke")
+	panelStroke.Color = Color3.fromRGB(50, 50, 61)
+	panelStroke.Thickness = 1
+	panelStroke.Transparency = 0.25
+	panelStroke.Parent = panel
+
+	local heading = Instance.new("TextLabel")
+	heading.Size = UDim2.new(1, -24, 0, 28)
+	heading.Position = UDim2.fromOffset(12, 4)
+	heading.BackgroundTransparency = 1
+	heading.Text = tostring(widgetDef.optionsTitle or "Quick options")
+	heading.TextColor3 = TEXT_MAIN
+	heading.TextSize = 11
+	heading.Font = Enum.Font.GothamBold
+	heading.TextXAlignment = Enum.TextXAlignment.Left
+	heading.ZIndex = 42
+	heading.Parent = panel
+
+	local colorRow = Instance.new("Frame")
+	colorRow.Size = UDim2.new(1, -16, 0, 40)
+	colorRow.Position = UDim2.fromOffset(8, 34)
+	colorRow.BackgroundColor3 = BG_ROW
+	colorRow.BorderSizePixel = 0
+	colorRow.ZIndex = 41
+	colorRow.Parent = panel
+	corner(colorRow, 6)
+
+	local colorLabel = Instance.new("TextLabel")
+	colorLabel.Size = UDim2.new(1, -54, 1, 0)
+	colorLabel.Position = UDim2.fromOffset(10, 0)
+	colorLabel.BackgroundTransparency = 1
+	colorLabel.Text = tostring(widgetDef.colorLabel or "Color")
+	colorLabel.TextColor3 = Color3.fromRGB(205, 205, 214)
+	colorLabel.TextSize = 11
+	colorLabel.Font = Enum.Font.Gotham
+	colorLabel.TextXAlignment = Enum.TextXAlignment.Left
+	colorLabel.ZIndex = 42
+	colorLabel.Parent = colorRow
+
+	local keyRow = Instance.new("Frame")
+	keyRow.Size = UDim2.new(1, -16, 0, 40)
+	keyRow.Position = UDim2.fromOffset(8, 78)
+	keyRow.BackgroundColor3 = BG_ROW
+	keyRow.BorderSizePixel = 0
+	keyRow.ZIndex = 41
+	keyRow.Parent = panel
+	corner(keyRow, 6)
+
+	local keyLabel = Instance.new("TextLabel")
+	keyLabel.Size = UDim2.new(1, IS_MOBILE and -128 or -142, 1, 0)
+	keyLabel.Position = UDim2.fromOffset(10, 0)
+	keyLabel.BackgroundTransparency = 1
+	keyLabel.Text = tostring(widgetDef.keybindLabel or "Keybind")
+	keyLabel.TextColor3 = Color3.fromRGB(205, 205, 214)
+	keyLabel.TextSize = 11
+	keyLabel.Font = Enum.Font.Gotham
+	keyLabel.TextXAlignment = Enum.TextXAlignment.Left
+	keyLabel.ZIndex = 42
+	keyLabel.Parent = keyRow
+
+	local colorKey = configKey .. "_quick_color"
+	local keybindKey = configKey .. "_quick_keybind"
+	local colorGetter, setColorChanged = buildColorPicker(colorRow, widgetDef.colorDefault or ACCENT, colorKey)
+	if widgetDef.onColorChange then setColorChanged(widgetDef.onColorChange) end
+	local keybindGetter = buildKeybind(keyRow, widgetDef.keybindDefault or Enum.KeyCode.RightShift, keybindKey, widgetDef.onKeybindChange)
+	configRegistry[colorKey] = { getter = colorGetter }
+	configRegistry[keybindKey] = { getter = keybindGetter }
+
+	for _, object in ipairs(panel:GetDescendants()) do
+		if object:IsA("GuiObject") and object ~= panel then
+			object.ZIndex = math.max(object.ZIndex, 42)
+		end
+	end
+
+	local open = false
+	local trackConn
+	local function positionPanel()
+		local rootPos = MainFrame.AbsolutePosition
+		local rowPos = row.AbsolutePosition
+		local panelSize = panel.AbsoluteSize
+		local rootSize = MainFrame.AbsoluteSize
+		local wantedX = rowPos.X - rootPos.X + row.AbsoluteSize.X - panelSize.X
+		local wantedY = rowPos.Y - rootPos.Y + row.AbsoluteSize.Y + 6
+		if wantedY + panelSize.Y > rootSize.Y - 8 then
+			wantedY = rowPos.Y - rootPos.Y - panelSize.Y - 6
+		end
+		panel.Position = UDim2.fromOffset(
+			math.clamp(wantedX, 8, math.max(8, rootSize.X - panelSize.X - 8)),
+			math.clamp(wantedY, 8, math.max(8, rootSize.Y - panelSize.Y - 8))
+		)
+	end
+
+	optionsButton.MouseEnter:Connect(function()
+		tween(optionsButton, { BackgroundTransparency = 0.08 }, TI_FAST)
+		tween(dots, { ImageColor3 = TEXT_MAIN }, TI_FAST)
+	end)
+	optionsButton.MouseLeave:Connect(function()
+		tween(optionsButton, { BackgroundTransparency = 0.35 }, TI_FAST)
+		tween(dots, { ImageColor3 = Color3.fromRGB(145, 145, 156) }, TI_FAST)
+	end)
+	optionsButton.MouseButton1Click:Connect(function()
+		open = not open
+		panel.Visible = open
+		if open then
+			positionPanel()
+			trackConn = RunService.RenderStepped:Connect(positionPanel)
+		else
+			if trackConn then trackConn:Disconnect(); trackConn = nil end
+		end
+	end)
+
+	row.Destroying:Connect(function()
+		if trackConn then trackConn:Disconnect() end
+		if panel then panel:Destroy() end
+	end)
+end
+
 local function fuzzyMatch(str, query)
 	str   = str:lower()
 	query = query:lower()
@@ -2228,6 +2386,7 @@ local function buildRow(parent, titleText, descText, order, widgetDef, pageEntry
 		local g, fn, oc, setS = buildToggle(row, widgetDef.default, configKey)
 		getter = g; toggleFn = fn; toggleSetState = setS
 		if widgetDef.onChange then oc(widgetDef.onChange) end
+		buildToggleQuickOptions(row, widgetDef, configKey)
 	elseif wt == "slider" then
 		local g, oc = buildSlider(row, widgetDef.min, widgetDef.max, widgetDef.default, configKey, widgetDef.step)
 		getter = g
