@@ -1651,7 +1651,7 @@ local function buildColorPicker(parent, defaultColor, configKey)
 	swatch.BorderSizePixel  = 0
 	swatch.ZIndex           = 3
 	swatch.Parent           = parent
-	corner(swatch, 6)
+	corner(swatch, 999)
 
 	local swatchBorder = Instance.new("UIStroke")
 	swatchBorder.Color       = Color3.fromRGB(255, 255, 255)
@@ -1961,7 +1961,7 @@ local function buildColorPicker(parent, defaultColor, configKey)
 	end)
 
 	refresh()
-	return function() return currentColor end, function(fn) onChange = fn end
+	return function() return currentColor end, function(fn) onChange = fn end, swatch
 end
 
 local function buildMultiSelect(parent, options, defaults, configKey)
@@ -2159,7 +2159,7 @@ local function buildMultiSelect(parent, options, defaults, configKey)
 	end, function(fn) onChange = fn end
 end
 
-local function buildToggleQuickOptions(row, widgetDef, configKey)
+local function buildLegacyToggleQuickOptions(row, widgetDef, configKey)
 	if widgetDef.quickOptions == false then return end
 
 	local optionsButton = Instance.new("TextButton")
@@ -2328,6 +2328,56 @@ local function buildToggleQuickOptions(row, widgetDef, configKey)
 	end)
 end
 
+local function buildToggleAccessories(row, widgetDef, configKey)
+	if widgetDef.quickOptions == false then return end
+
+	local optionsButton = Instance.new("TextButton")
+	optionsButton.Name = "QuickOptions"
+	optionsButton.Size = UDim2.fromOffset(24, 24)
+	optionsButton.Position = IS_MOBILE and UDim2.new(1, -108, 1, -36) or UDim2.new(1, -108, 0.5, -12)
+	optionsButton.BackgroundTransparency = 1
+	optionsButton.BorderSizePixel = 0
+	optionsButton.Text = ""
+	optionsButton.AutoButtonColor = false
+	optionsButton.ZIndex = 8
+	optionsButton.Parent = row
+
+	local dots = Instance.new("ImageLabel")
+	dots.Size = UDim2.fromOffset(16, 16)
+	dots.Position = UDim2.new(0.5, -8, 0.5, -8)
+	dots.BackgroundTransparency = 1
+	dots.Image = getIcon("ellipsis", "Lucide")
+	dots.ImageColor3 = Color3.fromRGB(255, 255, 255)
+	dots.ZIndex = 9
+	dots.Parent = optionsButton
+
+	optionsButton.MouseEnter:Connect(function()
+		tween(dots, { ImageColor3 = Color3.fromRGB(188, 188, 198) }, TI_FAST)
+	end)
+	optionsButton.MouseLeave:Connect(function()
+		tween(dots, { ImageColor3 = Color3.fromRGB(255, 255, 255) }, TI_FAST)
+	end)
+
+	local colorKey = configKey .. "_quick_color"
+	local colorGetter, setColorChanged, swatch = buildColorPicker(row, widgetDef.colorDefault or ACCENT, colorKey)
+	if widgetDef.onColorChange then setColorChanged(widgetDef.onColorChange) end
+	configRegistry[colorKey] = { getter = colorGetter }
+
+	if swatch then
+		swatch.Name = "QuickColor"
+		swatch.Size = UDim2.fromOffset(24, 24)
+		swatch.Position = IS_MOBILE and UDim2.new(1, -78, 1, -36) or UDim2.new(1, -78, 0.5, -12)
+		local swatchCorner = swatch:FindFirstChildOfClass("UICorner")
+		if swatchCorner then swatchCorner.CornerRadius = UDim.new(1, 0) end
+		local swatchStroke = swatch:FindFirstChildOfClass("UIStroke")
+		if swatchStroke then
+			swatchStroke.Color = Color3.fromRGB(255, 255, 255)
+			swatchStroke.Transparency = 0.62
+			swatchStroke.Thickness = 1
+		end
+	end
+end
+
 local function fuzzyMatch(str, query)
 	str   = str:lower()
 	query = query:lower()
@@ -2403,7 +2453,7 @@ local function buildRow(parent, titleText, descText, order, widgetDef, pageEntry
 		local g, fn, oc, setS = buildToggle(row, widgetDef.default, configKey)
 		getter = g; toggleFn = fn; toggleSetState = setS
 		if widgetDef.onChange then oc(widgetDef.onChange) end
-		buildToggleQuickOptions(row, widgetDef, configKey)
+		buildToggleAccessories(row, widgetDef, configKey)
 	elseif wt == "slider" then
 		local g, oc = buildSlider(row, widgetDef.min, widgetDef.max, widgetDef.default, configKey, widgetDef.step)
 		getter = g
