@@ -861,31 +861,63 @@ local RadialRoot
 local radialOpen = false
 
 local function makeExternalIcon(parent, entry, size, position)
-	local button = Instance.new("ImageButton")
+	local button = Instance.new("TextButton")
 	button.Name = entry.name .. "NavIcon"
 	button.Size = UDim2.fromOffset(size, size)
 	button.Position = position or UDim2.new()
-	button.BackgroundColor3 = BG_SIDEBAR
-	button.BackgroundTransparency = 0.08
+	button.BackgroundColor3 = BG_INPUT
+	button.BackgroundTransparency = entry == activeNavBtn and 0.15 or 1
 	button.BorderSizePixel = 0
 	button.AutoButtonColor = false
-	button.Image = entry.ico.Image
-	button.ImageColor3 = entry == activeNavBtn and ACCENT or TEXT_MUTED
+	button.Text = ""
 	button.ZIndex = 302
 	button.Parent = parent
-	corner(button, 12)
+	corner(button, 9)
 
-	local stroke = Instance.new("UIStroke")
-	stroke.Color = entry == activeNavBtn and ACCENT or DIVIDER
-	stroke.Thickness = 1
-	stroke.Transparency = 0.15
-	stroke.Parent = button
+	local glyph = Instance.new("ImageLabel")
+	local glyphSize = IS_MOBILE and 18 or 16
+	glyph.Size = UDim2.fromOffset(glyphSize, glyphSize)
+	glyph.Position = UDim2.new(0.5, -glyphSize/2, 0.5, -glyphSize/2)
+	glyph.BackgroundTransparency = 1
+	glyph.Image = entry.ico.Image
+	glyph.ImageColor3 = entry == activeNavBtn and TEXT_MAIN or Color3.fromRGB(135, 135, 148)
+	glyph.ZIndex = 303
+	glyph.Parent = button
+
+	local activeDot = Instance.new("Frame")
+	activeDot.Size = UDim2.fromOffset(4, 2)
+	activeDot.Position = UDim2.new(0.5, -2, 1, -4)
+	activeDot.BackgroundColor3 = TEXT_MAIN
+	activeDot.BackgroundTransparency = entry == activeNavBtn and 0 or 1
+	activeDot.BorderSizePixel = 0
+	activeDot.ZIndex = 304
+	activeDot.Parent = button
+	corner(activeDot, 2)
+
+	local tooltip = Instance.new("TextLabel")
+	tooltip.Size = UDim2.fromOffset(math.clamp(#entry.name * 7 + 18, 54, 132), 24)
+	tooltip.Position = UDim2.new(0.5, -tooltip.Size.X.Offset/2, 1, 8)
+	tooltip.BackgroundColor3 = Color3.fromRGB(18, 18, 23)
+	tooltip.BackgroundTransparency = 0.05
+	tooltip.BorderSizePixel = 0
+	tooltip.Text = entry.name
+	tooltip.TextColor3 = Color3.fromRGB(220, 220, 226)
+	tooltip.TextSize = 10
+	tooltip.Font = Enum.Font.GothamMedium
+	tooltip.Visible = false
+	tooltip.ZIndex = 320
+	tooltip.Parent = button
+	corner(tooltip, 6)
 
 	button.MouseEnter:Connect(function()
-		tween(button, { ImageColor3 = TEXT_MAIN, BackgroundColor3 = BG_INPUT }, TI_FAST)
+		tween(button, { BackgroundTransparency = 0.15 }, TI_FAST)
+		tween(glyph, { ImageColor3 = TEXT_MAIN }, TI_FAST)
+		tooltip.Visible = true
 	end)
 	button.MouseLeave:Connect(function()
-		tween(button, { ImageColor3 = entry == activeNavBtn and ACCENT or TEXT_MUTED, BackgroundColor3 = BG_SIDEBAR }, TI_FAST)
+		tween(button, { BackgroundTransparency = entry == activeNavBtn and 0.15 or 1 }, TI_FAST)
+		tween(glyph, { ImageColor3 = entry == activeNavBtn and TEXT_MAIN or Color3.fromRGB(135, 135, 148) }, TI_FAST)
+		tooltip.Visible = false
 	end)
 	button.MouseButton1Click:Connect(function()
 		if externalNavActivate then externalNavActivate(entry) end
@@ -911,31 +943,32 @@ local function buildTopDock()
 	TopDock = Instance.new("Frame")
 	TopDock.Name = "SpareStackTopDock"
 	TopDock.AutomaticSize = Enum.AutomaticSize.X
-	TopDock.Size = UDim2.fromOffset(0, IS_MOBILE and 54 or 50)
+	TopDock.Size = UDim2.fromOffset(0, IS_MOBILE and 44 or 40)
 	TopDock.AnchorPoint = Vector2.new(0.5, 0)
 	TopDock.Position = UDim2.new(0.5, 0, 0, 8)
 	TopDock.BackgroundColor3 = BG_SIDEBAR
-	TopDock.BackgroundTransparency = 0.05
+	TopDock.BackgroundTransparency = 0.12
 	TopDock.BorderSizePixel = 0
 	TopDock.ZIndex = 300
 	TopDock.Parent = ScreenGui
-	corner(TopDock, 14)
-	pad(TopDock, 5, 5, 7, 7)
+	corner(TopDock, 11)
+	pad(TopDock, 4, 4, 5, 5)
 
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = DIVIDER
 	stroke.Thickness = 1
+	stroke.Transparency = 0.25
 	stroke.Parent = TopDock
 
 	local layout = Instance.new("UIListLayout")
 	layout.FillDirection = Enum.FillDirection.Horizontal
 	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	layout.VerticalAlignment = Enum.VerticalAlignment.Center
-	layout.Padding = UDim.new(0, 6)
+	layout.Padding = UDim.new(0, 2)
 	layout.Parent = TopDock
 
 	for _, entry in ipairs(navButtons) do
-		local icon = makeExternalIcon(TopDock, entry, IS_MOBILE and 44 or 40)
+		local icon = makeExternalIcon(TopDock, entry, IS_MOBILE and 36 or 32)
 		icon.LayoutOrder = entry.btn.LayoutOrder
 	end
 end
@@ -949,40 +982,50 @@ local function buildRadialMenu()
 	RadialRoot.ZIndex = 300
 	RadialRoot.Parent = ScreenGui
 
-	local launcher = Instance.new("ImageButton")
-	launcher.Size = UDim2.fromOffset(IS_MOBILE and 54 or 50, IS_MOBILE and 54 or 50)
+	local launcher = Instance.new("TextButton")
+	launcher.Size = UDim2.fromOffset(IS_MOBILE and 44 or 40, IS_MOBILE and 44 or 40)
 	launcher.AnchorPoint = Vector2.new(0.5, 0.5)
-	launcher.Position = UDim2.new(1, IS_MOBILE and -38 or -42, 0.5, 0)
+	launcher.Position = UDim2.new(1, IS_MOBILE and -32 or -34, 0.5, 0)
 	launcher.BackgroundColor3 = BG_SIDEBAR
 	launcher.BorderSizePixel = 0
 	launcher.AutoButtonColor = false
-	launcher.Image = getIcon("menu", "Lucide")
-	launcher.ImageColor3 = ACCENT
+	launcher.Text = ""
 	launcher.ZIndex = 305
 	launcher.Parent = RadialRoot
 	corner(launcher, 999)
 
+	local launcherIcon = Instance.new("ImageLabel")
+	launcherIcon.Size = UDim2.fromOffset(IS_MOBILE and 18 or 16, IS_MOBILE and 18 or 16)
+	launcherIcon.Position = UDim2.new(0.5, IS_MOBILE and -9 or -8, 0.5, IS_MOBILE and -9 or -8)
+	launcherIcon.BackgroundTransparency = 1
+	launcherIcon.Image = getIcon("menu", "Lucide")
+	launcherIcon.ImageColor3 = TEXT_MAIN
+	launcherIcon.ZIndex = 306
+	launcherIcon.Parent = launcher
+
 	local launcherStroke = Instance.new("UIStroke")
-	launcherStroke.Color = ACCENT
-	launcherStroke.Thickness = 1.5
+	launcherStroke.Color = DIVIDER
+	launcherStroke.Thickness = 1
+	launcherStroke.Transparency = 0.15
 	launcherStroke.Parent = launcher
 
 	local radialIcons = {}
 	local count = #navButtons
 	for i, entry in ipairs(navButtons) do
-		local icon = makeExternalIcon(RadialRoot, entry, IS_MOBILE and 44 or 42, launcher.Position)
+		local icon = makeExternalIcon(RadialRoot, entry, IS_MOBILE and 38 or 36, launcher.Position)
 		icon.AnchorPoint = Vector2.new(0.5, 0.5)
 		icon.Visible = false
 		local angle = count == 1 and math.pi or math.rad(130 + ((i - 1) / (count - 1)) * 100)
 		table.insert(radialIcons, {
 			button = icon,
-			target = UDim2.new(1, (IS_MOBILE and -38 or -42) + math.cos(angle) * (IS_MOBILE and 108 or 122), 0.5, math.sin(angle) * (IS_MOBILE and 108 or 122)),
+			target = UDim2.new(1, (IS_MOBILE and -32 or -34) + math.cos(angle) * (IS_MOBILE and 94 or 104), 0.5, math.sin(angle) * (IS_MOBILE and 94 or 104)),
 		})
 	end
 
 	launcher.MouseButton1Click:Connect(function()
 		radialOpen = not radialOpen
-		launcher.Image = getIcon(radialOpen and "x" or "menu", "Lucide")
+		launcherIcon.Image = getIcon(radialOpen and "x" or "menu", "Lucide")
+		tween(launcher, { BackgroundColor3 = radialOpen and BG_INPUT or BG_SIDEBAR }, TI_FAST)
 		for _, item in ipairs(radialIcons) do
 			if radialOpen then
 				item.button.Visible = true
